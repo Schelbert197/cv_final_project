@@ -41,33 +41,55 @@ def identify_basketball(frame):
                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 50, 
                param2 = 30, minRadius = 1, maxRadius = 40)
    
+   centroid = 0
+   object_coordinates = 0
+   padding = 7
+   
    # draw circles that are detected
    if detected_circles is not None:
+      # may need to add a check for the number of circles detected
+      # i.e. if greater than 1, use the largest circle
+
       detected_circles = np.uint16(np.around(detected_circles))
       for pt in detected_circles[0, :]:
          a, b, r = pt[0], pt[1], pt[2]
-         cv2.circle(frame, (a, b), r, (0, 255, 0), 2)
-         cv2.circle(frame, (a, b), 1, (0, 0, 255), 3)
+
+         # draw a box around the circle (basketball)
+         top_left = (a-r-padding, b-r-padding)
+         bottom_right = (a+r+padding, b+r+padding)
+         cv2.rectangle(frame, top_left, bottom_right, (0, 255, 0), 2)
+
          cv2.imshow("Detected Circle", frame)
          cv2.waitKey(0)
+
+         centroid = (a, b)
+         object_coordinates = (a-r-padding, b-r-padding, a+r+padding, b+r+padding)
+
+         return centroid, object_coordinates
+      
    else:
-      print("No circles detected")
+      print("No circles detected, using contour...")
 
       # put a circle around teh largest contour
       contours, _ = cv2.findContours(closed_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
       if len(contours) != 0:
          c = max(contours, key = cv2.contourArea)
-         ((x, y), radius) = cv2.minEnclosingCircle(c)
-         cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 0), 2)
+
+         # draw a box around the circle (basketball)
+         (x, y, w, h) = cv2.boundingRect(c)
+         top_left = (x-padding, y-padding)
+         bottom_right = (x+w+padding, y+h+padding)
+
+         cv2.rectangle(frame, top_left, bottom_right, (0, 255, 0), 2)
+
          cv2.imshow("Detected Circle", frame)
          cv2.waitKey(0)
 
+         centroid = (x+w//2, y+h//2)
+         object_coordinates = (x-padding, y-padding, x+w+padding, y+h+padding)
 
-   centroid = 0
-   object_coordinates = 0
-
-   return centroid, object_coordinates
+         return centroid, object_coordinates
 
 
    
@@ -77,6 +99,16 @@ def identify_basketball(frame):
 
 
 
-# identify_basketball(frame1)
-# identify_basketball(frame2)
-identify_basketball(frame3)
+centroid, object_coordinates =  identify_basketball(frame1)
+# centroid, object_coordinates = identify_basketball(frame2)
+# centroid, object_coordinates = identify_basketball(frame3)
+
+# cut the object from the frame
+x1, y1, x2, y2 = object_coordinates
+object = frame1[y1:y2, x1:x2]
+
+cv2.imshow("Object", object)
+cv2.waitKey(0)
+
+print(centroid)
+print(object_coordinates)
