@@ -14,7 +14,7 @@ frame6 = cv2.imread('../images/test/nash.png', cv2.IMREAD_COLOR)
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
-def find_basketball(frame, initial_frame=False, point_of_interest=None):
+def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10):
 
    # convert the image to HSV
    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Hue, Saturation, Value
@@ -36,14 +36,11 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None):
    scores = [] # the total score for each contour
 
    square_scores = []
-   square_weight = 1 # importance of squareness
 
    size_scores = []
-   size_weight = 1 # importance of size
 
    distance_scores = []
-   distance_weight = 33 # importance of distance
-
+  
    ### SQUARENESS SCORE ###
    for c in contours:
          x, y, w, h = cv2.boundingRect(c)
@@ -59,7 +56,6 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None):
    for c in contours:
          size = cv2.contourArea(c)
          size_scores.append(size)
-
 
    ### DISTANCE SCORE ###
 
@@ -77,8 +73,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None):
       else:
          distance_from_point = distance(centroid_x, centroid_y, point_of_interest[0], point_of_interest[1])
 
-      distance_from_point = distance_from_point ** -1
-
+      distance_from_point = distance_from_point ** -1 # make is so larger val = closer to the point of interest (i.e. good)
       distance_scores.append(distance_from_point)
 
    # normalize size and distance
@@ -93,48 +88,55 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None):
    # add all the scores together
    scores = [square_scores[i] + size_scores[i] + distance_scores[i] for i in range(len(contours))]
 
-   max_score = max(scores)
 
+   ### make sure each contour is close enough ###
+   if initial_frame == False:
+       for i, c in enumerate(contours):
+           x, y, w, h = cv2.boundingRect(c)
+           centroid_x = x + w / 2
+           centroid_y = y + h / 2
+
+           if distance(centroid_x, centroid_y, point_of_interest[0], point_of_interest[1]) > 500:
+               scores[i] = 0
+
+
+
+
+   # find the contour with the highest score
+   max_score = max(scores)
    max_score_index = scores.index(max_score)
 
    for i, c in enumerate(contours):
          if i == max_score_index:
                x, y, w, h = cv2.boundingRect(c)
+               # print the score on the rectangle
+               cv2.putText(frame, str(round(max_score, 2)), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+
                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
          else:
+               
+               pass
+         # print the score on the rectangle
+               cv2.putText(frame, str(round(scores[i], 2)), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                x, y, w, h = cv2.boundingRect(c)
                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-   print()
-   print(square_scores)
-   print(size_scores)
-   print(distance_scores)
-   print(scores)
-   print()
 
-   
+   # draw point of interest
+   cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
 
-
-   # also want to score it based on distance to a designated point and size
-
-   # display the frame
-
-   cv2.imshow("frame", frame)
+   cv2.imshow("Detected Basketball", frame)
    cv2.waitKey(0)
-  
+
+   point_of_interest = (x + w / 2, y + h / 2)
+
+
+   return point_of_interest
 
 
 
 
-
-
-
-
-
-
-
-
-         
 
 
 
@@ -190,17 +192,13 @@ def distance(x1, y1, x2, y2):
     
     
 
-# weight the scores
-# test with a defined point of interest
 
-
-# circle in top right of frame
       
 
 
-find_basketball(frame1, initial_frame=False)
-find_basketball(frame2, initial_frame=True)
-find_basketball(frame3, initial_frame=True)
-find_basketball(frame4, initial_frame=False)
-find_basketball(frame5, initial_frame=True)
-find_basketball(frame6, initial_frame=True)
+# find_basketball(frame1, initial_frame=True)
+# find_basketball(frame2, initial_frame=True)
+# find_basketball(frame3, initial_frame=True)
+# find_basketball(frame4, initial_frame=True)
+# find_basketball(frame5, initial_frame=True)
+# find_basketball(frame6, initial_frame=True)
