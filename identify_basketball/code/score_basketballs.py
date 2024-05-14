@@ -16,6 +16,12 @@ frame6 = cv2.imread('../images/test/nash.png', cv2.IMREAD_COLOR)
 # and return the centroid of the most likely basketball
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10):
 
+   if initial_frame == True and point_of_interest == None:
+      point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
+
+   # draw point of interest
+   cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
+
    # convert the image to HSV
    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Hue, Saturation, Value
 
@@ -40,6 +46,8 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    size_scores = []
 
    distance_scores = []
+
+   distance_check = []
   
    ### SQUARENESS SCORE ###
    for c in contours:
@@ -60,21 +68,22 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    ### DISTANCE SCORE ###
 
    for c in contours:
+
+      # find the center of each contour
       x, y, w, h = cv2.boundingRect(c)
       centroid_x = x + w / 2
       centroid_y = y + h / 2
-
-      # distance from the point of interest
-      if initial_frame:
-         point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2) # center of the frame
-
-         distance_from_point = distance(centroid_x, centroid_y, point_of_interest[0], point_of_interest[1])
       
+      # this is here to prevent division by zero (if the centroid is the same as the point of interest, the distance is 0, which is not good for scoring)
+      if (centroid_x, centroid_y) != point_of_interest:
+         distance_from_point = 1 / np.linalg.norm(np.array([centroid_x, centroid_y]) - np.array(point_of_interest))
       else:
-         distance_from_point = distance(centroid_x, centroid_y, point_of_interest[0], point_of_interest[1])
+         distance_from_point = 0.000001
 
-      distance_from_point = distance_from_point ** -1 # make is so larger val = closer to the point of interest (i.e. good)
       distance_scores.append(distance_from_point)
+
+   ### DISTANCE CHECK ###    ### TODO
+   
 
    # normalize size and distance
    size_scores = [s / max(size_scores) for s in size_scores]
@@ -88,24 +97,11 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # add all the scores together
    scores = [square_scores[i] + size_scores[i] + distance_scores[i] for i in range(len(contours))]
 
-
-   ### make sure each contour is close enough ###
-   if initial_frame == False:
-       for i, c in enumerate(contours):
-           x, y, w, h = cv2.boundingRect(c)
-           centroid_x = x + w / 2
-           centroid_y = y + h / 2
-
-           if distance(centroid_x, centroid_y, point_of_interest[0], point_of_interest[1]) > 500:
-               scores[i] = 0
-
-
-
-
    # find the contour with the highest score
    max_score = max(scores)
    max_score_index = scores.index(max_score)
 
+   # this part of the code is for visualization purposes only
    for i, c in enumerate(contours):
          if i == max_score_index:
                x, y, w, h = cv2.boundingRect(c)
@@ -114,6 +110,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
 
                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+               point_of_interest = (x + w / 2, y + h / 2)
          else:
                
                pass
@@ -123,13 +120,10 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
 
-   # draw point of interest
-   cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
-
    cv2.imshow("Detected Basketball", frame)
    cv2.waitKey(0)
 
-   point_of_interest = (x + w / 2, y + h / 2)
+   
 
 
    return point_of_interest
