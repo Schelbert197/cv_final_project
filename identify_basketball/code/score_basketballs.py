@@ -1,3 +1,10 @@
+### TODO: the next thing to do is to improve the size scoring. have it compare
+### the size of the contour to the size of the previous frame's contour. if the
+### size of the contour is too different, then it's probably not a basketball.
+### this will help when it goes in and out of frame
+
+
+
 import cv2
 import numpy as np
 
