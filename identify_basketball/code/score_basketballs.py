@@ -57,6 +57,9 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
          small = min(w, h)
          big = max(w, h)
          squareness = small / big # how much bigger the bigger side is than the smaller side
+         if squareness < 0.15:
+             squareness = -100000
+
          square_scores.append(squareness) # the higher the score, the more likely it is a basketball. From 0 to 1
 
    ### SIZE SCORE ###
@@ -84,7 +87,6 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
    ### DISTANCE CHECK ###    ### TODO
    
-
    # normalize size and distance
    size_scores = [s / max(size_scores) for s in size_scores]
    distance_scores = [d / max(distance_scores) for d in distance_scores]
