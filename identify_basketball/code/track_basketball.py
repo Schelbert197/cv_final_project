@@ -5,14 +5,13 @@ import matplotlib.pyplot as plt
 
 
 # load video
-cap = cv2.VideoCapture('../videos/clear_nash_shot.mp4') # also: nash_cut.mp4
+cap = cv2.VideoCapture('../videos/nash_shot_clean.mp4') # also: nash_cut.mp4
 
 # read the first frame
 ret, frame = cap.read()
 frame_shape = frame.shape  # store the shape of the frame
 
 point_of_interest = find_basketball(frame, initial_frame=True)
-# point_of_interest2 = find_basketball(frame, initial_frame=True)
 
 coordinates = []
 
@@ -29,14 +28,16 @@ while cap.isOpened():
 
 cap.release()
 
+# save the coordinates
+coordinates = np.array(coordinates)
+np.save('../data/basketball_trajectory_2.npy', coordinates)
+
+# save in a csv file
+np.savetxt('../data/basketball_trajectory_2.csv', coordinates, delimiter=',')
+
+
 ### PLOT THE TRAJECTORY ###
-# coordinates = np.array(coordinates)
-# plt.plot(coordinates[:, 0], frame_shape[0] - coordinates[:, 1])
-# plt.title('Nash Basketball Trajectory')
-# plt.savefig('../plots/basketball_trajectory_2.png')
-# plt.show()
-
-
-
-
-
+plt.plot(coordinates[:, 0], frame_shape[0] - coordinates[:, 1])
+plt.title('Basketball Trajectory')
+plt.savefig('../plots/basketball_trajectory_2.png')
+plt.show()

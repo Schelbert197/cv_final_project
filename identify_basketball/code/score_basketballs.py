@@ -1,28 +1,22 @@
 ### TODO: the next thing to do is to improve the size scoring. have it compare
 ### the size of the contour to the size of the previous frame's contour. if the
 ### size of the contour is too different, then it's probably not a basketball.
-### this will help when it goes in and out of frame
-
-
+### this will help when the ball goes in and out of frame
 
 import cv2
 import numpy as np
 
 np.set_printoptions(threshold=np.inf)
 
-# read several testing images
-
-frame1 = cv2.imread('../images/test/1.png', cv2.IMREAD_COLOR)
-frame2 = cv2.imread('../images/test/2.png', cv2.IMREAD_COLOR)
-frame3 = cv2.imread('../images/test/3.png', cv2.IMREAD_COLOR)
-frame4 = cv2.imread('../images/test/4.png', cv2.IMREAD_COLOR)
-frame5 = cv2.imread('../images/test/5.png', cv2.IMREAD_COLOR)
-frame6 = cv2.imread('../images/test/nash.png', cv2.IMREAD_COLOR)
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10):
-
+      
+   # record the previous point of interest in case no new points are identified
+   if point_of_interest != None:
+      previous_point_of_interest = point_of_interest
+   
    # manually define the point of interest from the first image
    if initial_frame == True and point_of_interest == None:
       point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
@@ -45,14 +39,15 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # find contours in the contour masked image
    contours, _ = cv2.findContours(cleaned_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
+   if len(contours) == 0:
+      return previous_point_of_interest
+
    ########## For each contour, score it based on its likelihood of being a basketball ##########
 
    scores = [] # the total score for each contour
 
    square_scores = []
-
    size_scores = []
-
    distance_scores = []
 
    distance_check = []
@@ -62,11 +57,9 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
          x, y, w, h = cv2.boundingRect(c)
 
          # find how "square" it is
-         small = min(w, h)
-         big = max(w, h)
-         squareness = small / big # how much bigger the bigger side is than the smaller side
-         if squareness < 0.1:
-             squareness = -100000 # if it's too skinny, it's not a basketball
+         squareness = min(w, h) / max(w, h) # how much bigger the big side is than the small side
+         if squareness < 0.1: # if one side is much bigger than the other, it's probably not a basketball
+             squareness = -100000
 
          square_scores.append(squareness) # the higher the score, the more likely it is a basketball. From 0 to 1
 
@@ -75,6 +68,9 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    for c in contours:
          size = cv2.contourArea(c)
          size_scores.append(size)
+
+   # normalize the size scores
+   size_scores = [s / max(size_scores) for s in size_scores]
 
    ### DISTANCE SCORE ###
 
@@ -93,48 +89,44 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
       distance_scores.append(distance_from_point)
 
+   # normalize the distance scores
+   distance_scores = [d / max(distance_scores) for d in distance_scores]
+
    ### DISTANCE CHECK ###    
 
+   # for each contour, get the distance from the point of interest
+   # this score allows us to "track" the basketball as its position changes
    for c in contours:
       x, y, w, h = cv2.boundingRect(c)
       centroid_x = x + w / 2
       centroid_y = y + h / 2
       distance = np.linalg.norm(np.array([centroid_x, centroid_y]) - np.array(point_of_interest))
 
+      # basically disregarding the contour if it's too far away (unless all of them are >150 pixels away)
       if distance > 150:
-         distance = -100000
+         distance = -10000000
       else:
           distance = 0
 
       distance_check.append(distance)
 
-   prev_point = point_of_interest
-   
-   # normalize size and distance scores
-   size_scores = [s / max(size_scores) for s in size_scores]
-   distance_scores = [d / max(distance_scores) for d in distance_scores]
-
-   # apply weights
+   # apply weights, signifying the importance of each score
    square_scores = [s * square_weight for s in square_scores]
    size_scores = [s * size_weight for s in size_scores]
    distance_scores = [s * distance_weight for s in distance_scores]
 
-   # add all the scores together
+   # add all the scores together, creating a single score for each contour
    scores = [square_scores[i] + size_scores[i] + distance_scores[i] + distance_check[i] for i in range(len(contours))]
 
    # find the contour with the highest score
-   max_score = max(scores)
-   max_score_index = scores.index(max_score)
+   max_score_index = scores.index(max(scores))
 
    # this part of the code is for visualization purposes only
    for i, c in enumerate(contours):
          if i == max_score_index:
             x, y, w, h = cv2.boundingRect(c)
-            # print the score on the rectangle
-            cv2.putText(frame, str(round(max_score, 2)), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-
-
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.putText(frame, str(round(max(scores), 2)), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             point_of_interest = (x + w / 2, y + h / 2)
          else:
                
@@ -142,18 +134,14 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
             x, y, w, h = cv2.boundingRect(c)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-
-   print(len(contours))
-   print(scores)
-
+   # if all of distance_check is less than 0, 
+   # then the basketball's contour wasn't identified correctly, so
+   # set the point of interest equal to the previous point of interest
+   if all(i < 0 for i in distance_check) and initial_frame == False:
+      point_of_interest = previous_point_of_interest
 
    cv2.imshow("Detected Basketball", frame)
    cv2.waitKey(0)
-
-   
-   # if all of distance_check is less than 0, then the ball is out of frame and set point of interest equal to prev_point
-   if all(i < 0 for i in distance_check):
-      point_of_interest = prev_point
 
 
    return point_of_interest
@@ -213,16 +201,3 @@ def remove_small_contours(mask, threshold):
 
 def distance(x1, y1, x2, y2):
     return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
-    
-    
-
-
-      
-
-
-# find_basketball(frame1, initial_frame=True)
-# find_basketball(frame2, initial_frame=True)
-# find_basketball(frame3, initial_frame=True)
-# find_basketball(frame4, initial_frame=True)
-# find_basketball(frame5, initial_frame=True)
-# find_basketball(frame6, initial_frame=True)
