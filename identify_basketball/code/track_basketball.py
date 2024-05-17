@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # load video
-cap = cv2.VideoCapture('../videos/nash_miss_fullcut.mp4') # also: nash_cut.mp4
+cap = cv2.VideoCapture('../videos/clear_nash_shot.mp4') # also: nash_cut.mp4
 
 # read the first frame
 ret, frame = cap.read()
