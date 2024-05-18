@@ -5,8 +5,47 @@
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 np.set_printoptions(threshold=np.inf)
+
+def track_basketball(cap, plot_save_file=None, csv_save_file=None):
+   # read the first frame
+   ret, frame = cap.read()
+   frame_shape = frame.shape
+
+   # find the basketball in the first frame
+   point_of_interest = find_basketball(frame, initial_frame=True)
+
+   coordinates = []
+
+   # find basketball for the whole video
+   while cap.isOpened():
+         
+         ret, frame = cap.read()
+   
+         if not ret:
+            break
+   
+         point_of_interest = find_basketball(frame, point_of_interest=point_of_interest, distance_weight=44)
+         coordinates.append(point_of_interest)
+   
+   cap.release()
+
+   coordinates = np.array(coordinates)
+
+   if csv_save_file != None:
+      np.save(csv_save_file + '.npy', coordinates)
+      np.savetxt(csv_save_file + '.csv', coordinates, delimiter=',')
+
+   plt.plot(coordinates[:, 0], frame_shape[0] - coordinates[:, 1])
+   plt.title('Basketball Trajectory')
+   if plot_save_file != None:
+      plt.savefig(plot_save_file + '.png')
+   plt.show()
+
+   return coordinates
+    
 
 
 # score the contours based on their likelihood of being a basketball,
