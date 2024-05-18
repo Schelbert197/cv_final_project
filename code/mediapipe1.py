@@ -12,7 +12,8 @@ mp_holistic = mp.solutions.holistic
 # Load video
 # cap = cv2.VideoCapture('final_project/wr_ft_cut_covered.mp4')
 # cap = cv2.VideoCapture('final_project/nash_miss_fullcut.mp4')
-cap = cv2.VideoCapture('final_project/nash_slowed2.mp4')
+# cap = cv2.VideoCapture('final_project/nash_slowed2.mp4')
+cap = cv2.VideoCapture('../videos/nash_shot_clean.mp4')
 
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -125,5 +126,5 @@ axs[1].set_xlim(0, width)
 axs[1].set_ylim(height, 0)  # Flip y-axis to match image coordinates
 
 plt.tight_layout()
-plt.savefig('trajectory_plot.png')  # Save the plot as an image
+plt.savefig('../plots/trajectory_plot.png')  # Save the plot as an image
 plt.close(fig)  # Close the plot to prevent displaying it
