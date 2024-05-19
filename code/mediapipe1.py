@@ -163,6 +163,29 @@ def run_with_plot(video='videos/nash_shot_clean.mp4'):
 
 
 def find_release(threshold, wrist, ball):
+    """
+    Identify points in the 'ball' array that are farther than a specified
+    threshold distance from the closest point in the 'wrist' array.
+
+    This function first ensures that the 'wrist' array is no longer than
+    the 'ball' array by removing excess elements from the end of 'wrist'.
+    It then computes the Euclidean distances between each point in 'ball'
+    and all points in 'wrist', finds the minimum distance for each point
+    in 'ball', and identifies the points in 'ball' where this minimum
+    distance exceeds the given threshold.
+
+    Parameters:
+    -----------
+    threshold (float): The distance threshold for identifying far points.
+    wrist (list of tuple): Array of (x, y) coordinates representing wrist points.
+    ball (list of tuple): Array of (x, y) coordinates representing ball points.
+
+    Returns:
+    --------
+    numpy.ndarray: Array of points in 'ball' that are farther than the threshold
+                   distance from the nearest point in 'wrist'.
+    """
+
     while len(wrist) > len(ball):
         wrist.pop()
 
