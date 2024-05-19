@@ -32,3 +32,6 @@ far_points = ARR2[indices]
 
 print("Indices of points farther than the threshold:", indices)
 print("Points in ARR2 farther than the threshold:", far_points)
+# display and saves the basketball trajectory
+coordinates = track_basketball(
+    cap, plot_save_file='../plots/nash_shot_clean', csv_save_file='../data/nash_shot_clean')
