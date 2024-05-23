@@ -1,6 +1,7 @@
 from mediapipe1 import track_shot, find_release
 from score_basketballs import track_basketball
 import cv2
+import math
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg')  # Set backend to Agg
@@ -41,13 +42,18 @@ axs.plot(x2, y2, marker='o', color="r", markersize=2, label="Right Elbow")
 x3, y3 = zip(*coordinates)
 axs.plot(x3, y3, marker='o', color="b", markersize=2, label="Ball")
 
-far_points = find_release(40, right_wrist_trajectory, coordinates)
+far_points, release_angle = find_release(
+    40, right_wrist_trajectory, coordinates)
 
 # Plot ball trajectory post release
 x4, y4 = zip(*far_points)
 axs.plot(x4, y4, marker='o', color="orange",
          markersize=2, label="Ball Released")
 
+axs.plot(x4[:2], y4[:2], marker='o', color="yellow",
+         markersize=1, label="First released points")
+
+print(f"Deg: {release_angle:.2f}")
 
 axs.legend()
 

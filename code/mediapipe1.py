@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import mediapipe as mp
 import numpy as np
 import cv2
+import math
 from scipy.spatial import distance
 import matplotlib
 matplotlib.use('Agg')  # Set backend to Agg
@@ -182,8 +183,9 @@ def find_release(threshold, wrist, ball):
 
     Returns:
     --------
-    numpy.ndarray: Array of points in 'ball' that are farther than the threshold
-                   distance from the nearest point in 'wrist'.
+    far_points (numpy.ndarray): Array of points in 'ball' that are farther
+                   than the threshold distance from the nearest point in 'wrist'.
+    release_angle (float): The release angle of the ball in degrees.
     """
 
     while len(wrist) > len(ball):
@@ -198,4 +200,8 @@ def find_release(threshold, wrist, ball):
     # Get the points in ARR2 that are farther than the threshold
     far_points = ball[indices]
 
-    return far_points
+    # Compute the release angle in degrees
+    release_angle = math.degrees(
+        math.atan2(-1*(far_points[1][1]-far_points[0][1]), (far_points[1][0]-far_points[0][0])))
+
+    return far_points, release_angle
