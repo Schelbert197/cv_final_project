@@ -199,7 +199,7 @@ def create_basketball_mask(hsv_image, frame):
     ### define the color bounds for... ###
 
    # define the range of the color orange in hsv
-   lower_orange = np.array([0, 100, 100])
+   lower_orange = np.array([0, 120, 100])
    upper_orange = np.array([2, 255, 255])
 
    # define dark brown
