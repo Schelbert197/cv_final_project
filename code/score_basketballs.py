@@ -50,7 +50,7 @@ def track_basketball(cap, plot_save_file=None, csv_save_file=None):
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
-def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10):
+def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10):
       
    # record the previous point of interest in case no new points are identified
    if point_of_interest != None:
@@ -59,6 +59,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # manually define the point of interest from the first image
    if initial_frame == True and point_of_interest == None:
       point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
+      point_of_interest = (620, 750)
 
    # draw point of interest
    cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
@@ -70,7 +71,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    mask, masked_image = create_basketball_mask(hsv_image, frame) # masked image is it overlaid on the original image, mask is just the black and white image
 
    # remove the small objects (contours)
-   cleaned_mask = remove_small_contours(mask, 175) # a larger threshold removes more noise
+   cleaned_mask = remove_small_contours(mask, 18) # a larger threshold removes more noise
 
    # blur the image
    mask_blurred = cv2.blur(cleaned_mask, (3, 3))
@@ -97,7 +98,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
          # find how "square" it is
          squareness = min(w, h) / max(w, h) # how much bigger the big side is than the small side
-         if squareness < 0.1: # if one side is much bigger than the other, it's probably not a basketball
+         if squareness < 0.3: # if one side is much bigger than the other, it's probably not a basketball
              squareness = -100000
 
          square_scores.append(squareness) # the higher the score, the more likely it is a basketball. From 0 to 1
@@ -142,8 +143,8 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
       distance = np.linalg.norm(np.array([centroid_x, centroid_y]) - np.array(point_of_interest))
 
       # basically disregarding the contour if it's too far away (unless all of them are >150 pixels away)
-      if distance > 150:
-         distance = -10000000
+      if distance > 650:
+         distance = -100000000
       else:
           distance = 0
 
@@ -197,32 +198,25 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 def create_basketball_mask(hsv_image, frame):
     ### define the color bounds for... ###
 
-   # orange
-   lower_orange = np.array([5, 100, 100])
-   upper_orange = np.array([12, 255, 255])
+   # define the range of the color orange in hsv
+   lower_orange = np.array([0, 100, 100])
+   upper_orange = np.array([2, 255, 255])
 
-   # red
-   lower_red = np.array([172, 100, 100])
-   upper_red = np.array([176, 255, 255])
+   # define dark brown
+   # lower_dark_brown = np.array([0, 0, 0])
+   # upper_dark_brown = np.array([12, 12, 12])
 
-   # dark red
-   lower_dark_red = np.array([160,100,50])
-   upper_dark_red = np.array([180,255,100])
-
-   # Create a mask for the orange and red colors
-   mask_orange = cv2.inRange(hsv_image, lower_orange, upper_orange)
-   mask_red = cv2.inRange(hsv_image, lower_red, upper_red)
-   mask_dark_red = cv2.inRange(hsv_image, lower_dark_red, upper_dark_red)
+   # create a mask for the color orange
+   mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
+   # mask_brown = cv2.inRange(hsv_image, lower_dark_brown, upper_dark_brown)
 
    # combine the masks
-   mask = cv2.bitwise_or(mask_orange, mask_red)
-   mask = cv2.bitwise_or(mask, mask_dark_red)
+   # mask = cv2.bitwise_or(mask_orange, mask_brown)
 
    # apply the mask
    masked_image = cv2.bitwise_and(frame, frame, mask=mask)
 
    # mask is the black and white image, masked_image is the original image with the mask applied
-
    return mask, masked_image
 
 def remove_small_contours(mask, threshold):
