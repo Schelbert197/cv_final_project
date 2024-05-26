@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 np.set_printoptions(threshold=np.inf)
 
 # a default video of "None" will be the Nash shot
-def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=True):
+def track_basketball(cap, video, save_csv=True, save_plot=True, show_plot=True):
    # read the first frame
    ret, frame = cap.read()
    frame_shape = frame.shape
@@ -50,8 +50,11 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
-def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=3, distance_weight=10, video=None):
+def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10, video=None):
    print(video)
+
+
+
    # record the previous point of interest in case no new points are identified
    if point_of_interest != None:
       previous_point_of_interest = point_of_interest
@@ -61,10 +64,9 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
       if video == 'nash_shot_clean':
          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
       elif video == 'srikanth_make':
-          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
-          point_of_interest = (686, 801)
-
-
+         point_of_interest = (686, 801)
+      elif video == 'srikanth_miss':
+         point_of_interest = (686, 801)
 
    # draw point of interest
    cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
@@ -200,7 +202,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
         
 # segments out the orange, red, and dark red colors of a typical basketball
-def create_basketball_mask(hsv_image, frame, video=None):
+def create_basketball_mask(hsv_image, frame, video):
     ### define the color bounds for... ###
 
    if video == 'nash_shot_clean':
@@ -226,12 +228,18 @@ def create_basketball_mask(hsv_image, frame, video=None):
       mask = cv2.bitwise_or(mask_orange, mask_red)
       mask = cv2.bitwise_or(mask, mask_dark_red)
 
-   elif video == 'srikanth_make':
-       
+   elif video == 'srikanth_make':       
       lower_orange = np.array([0, 120, 80])
       upper_orange = np.array([2, 235, 255])
 
       mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
+
+   elif video == 'srikanth_miss':
+       lower_orange = np.array([0, 120, 100])
+       upper_orange = np.array([2, 255, 255])
+
+       mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
+       
 
        
 

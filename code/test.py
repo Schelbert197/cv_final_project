@@ -3,7 +3,7 @@ from score_basketballs import track_basketball
 
 
 # # load video
-cap = cv2.VideoCapture('../videos/srikanth_make.mp4') # also: nash_cut.mp4
+cap = cv2.VideoCapture('../videos/srikanth_miss.mp4') # also: nash_cut.mp4
 
 # # display and saves the basketball trajectory
 # coordinates = track_basketball(cap, plot_save_file='../plots/basketball_trajectory_3', csv_save_file='../data/basketball_trajectory_3')
@@ -35,4 +35,4 @@ print("Points in ARR2 farther than the threshold:", far_points)
 
 # display and saves the basketball trajectory
 coordinates = track_basketball(
-   cap, video='srikanth_make', save_csv=True, save_plot=True, show_plot=True)
+   cap, video='srikanth_miss', save_csv=True, save_plot=True, show_plot=True)
