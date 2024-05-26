@@ -64,6 +64,10 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
          point_of_interest = (686, 801)
       elif video == 'srikanth_miss':
          point_of_interest = (686, 801)
+      elif video == 'henry_make':
+         point_of_interest = (686, 801)
+      elif video == 'henry_miss':
+         point_of_interest = (686, 801)
 
    # draw point of interest
    cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
@@ -74,11 +78,12 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # create a mask to segment out the basketball colors
    mask, masked_image = create_basketball_mask(hsv_image, frame, video) # masked image is it overlaid on the original image, mask is just the black and white image
 
-   
-
+   thresh = 175
+   if video != 'nash_shot_clean':
+      thresh = 18
 
    # remove the small objects (contours)
-   cleaned_mask = remove_small_contours(mask, 18) # a larger threshold removes more noise
+   cleaned_mask = remove_small_contours(mask, thresh) # a larger threshold removes more noise
 
    # blur the image
    mask_blurred = cv2.blur(cleaned_mask, (3, 3))
@@ -149,8 +154,12 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
       centroid_y = y + h / 2
       distance = np.linalg.norm(np.array([centroid_x, centroid_y]) - np.array(point_of_interest))
 
-      # basically disregarding the contour if it's too far away (unless all of them are >150 pixels away)
-      if distance > 150:
+      # basically disregarding the contour if it's too far away (unless all of them are > dist_check pixels away)
+      dist_check = 150
+      if video != 'nash_shot_clean':
+         dist_check = 650
+
+      if distance > dist_check:
          distance = -10000000
       else:
           distance = 0
@@ -235,19 +244,27 @@ def create_basketball_mask(hsv_image, frame, video):
       mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
 
    elif video == 'srikanth_miss':
-       lower_orange = np.array([0, 120, 100])
-       upper_orange = np.array([2, 255, 255])
+      lower_orange = np.array([0, 120, 100])
+      upper_orange = np.array([2, 255, 255])
 
-       mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
-       
+      mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
 
+   elif video == 'henry_make':
+      lower_orange = np.array([0, 100, 57])
+      upper_orange = np.array([2, 220, 255])
+
+      mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
+
+   elif video == 'henry_miss':
+      lower_orange = np.array([0, 120, 80])
+      upper_orange = np.array([5, 235, 255])
+
+      mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
        
 
    # apply the mask
    masked_image = cv2.bitwise_and(frame, frame, mask=mask)
-
-   # mask is the black and white image, masked_image is the original image with the mask applied
-
+   
    return mask, masked_image
 
 def remove_small_contours(mask, threshold):
