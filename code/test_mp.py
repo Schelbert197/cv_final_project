@@ -2,7 +2,7 @@ from fastdtw import fastdtw
 from scipy.spatial.distance import euclidean
 from scipy.spatial import procrustes
 import numpy as np
-from mediapipe1 import track_shot, find_release
+from track_motion import track_shot, find_release
 from score_basketballs import track_basketball
 import cv2
 import math
@@ -117,3 +117,5 @@ print(f"The Procrustes disparity between the hands is: {disparity_hands}")
 distance_hands = compare_lines_dtw(
     left_wrist_trajectory, right_wrist_trajectory)
 print(f"The DTW distance between the hands is: {distance_hands}")
+print(f"left: {left_wrist_trajectory}")
+print(f"right: {right_wrist_trajectory}")

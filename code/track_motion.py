@@ -4,6 +4,10 @@ import numpy as np
 import cv2
 import math
 from scipy.spatial import distance
+from fastdtw import fastdtw
+from scipy.spatial.distance import euclidean
+from scipy.spatial import procrustes
+
 import matplotlib
 matplotlib.use('Agg')  # Set backend to Agg
 
@@ -205,3 +209,140 @@ def find_release(threshold, wrist, ball):
         math.atan2(-1*(far_points[1][1]-far_points[0][1]), (far_points[1][0]-far_points[0][0])))
 
     return far_points, release_angle
+
+
+def compare_lines_procrustes(line1, line2):
+    """
+    Compare two lines using Procrustes analysis to determine their similarity.
+
+    This function performs Procrustes analysis on two lines, which involves translating, 
+    rotating, and scaling the lines to minimize the disparity between them. The function 
+    handles lines of different lengths by padding the shorter line with repeated last points.
+
+    Parameters
+    ----------
+    line1 : list of tuples
+        The first line to be compared. Each tuple represents a point (x, y).
+    line2 : list of tuples
+        The second line to be compared. Each tuple represents a point (x, y).
+
+    Returns
+    -------
+    disparity : float
+        The Procrustes disparity measure between the two lines. A lower disparity indicates 
+        higher similarity between the lines.
+
+    Notes
+    -----
+    - Procrustes analysis is sensitive to the order of points in the lines.
+    - The lines are assumed to be represented in the same coordinate space.
+
+    Examples
+    --------
+    >>> line1 = [(0, 0), (1, 1), (2, 2)]
+    >>> line2 = [(0, 0), (1, 1), (3, 3)]
+    >>> compare_lines_procrustes(line1, line2)
+    0.003280619521467256
+    """
+    # Convert lines to numpy arrays
+    line1 = np.array(line1)
+    line2 = np.array(line2)
+
+    # Pad the shorter line with repeated last points to make them equal in length
+    if len(line1) < len(line2):
+        line1 = np.vstack(
+            [line1, np.tile(line1[-1], (len(line2) - len(line1), 1))])
+    elif len(line2) < len(line1):
+        line2 = np.vstack(
+            [line2, np.tile(line2[-1], (len(line1) - len(line2), 1))])
+
+    # Perform Procrustes analysis
+    mtx1, mtx2, disparity = procrustes(line1, line2)
+
+    return disparity
+
+
+def compare_lines_dtw(line1, line2):
+    """
+    Compare two lines using Dynamic Time Warping (DTW) to determine their similarity.
+
+    This function computes the DTW distance between two lines, which allows for comparisons
+    of lines that may vary in time or length. DTW finds the optimal alignment between the 
+    points of the two lines by minimizing the cumulative distance between them.
+
+    Parameters
+    ----------
+    line1 : list of tuples
+        The first line to be compared. Each tuple represents a point (x, y).
+    line2 : list of tuples
+        The second line to be compared. Each tuple represents a point (x, y).
+
+    Returns
+    -------
+    distance : float
+        The DTW distance between the two lines. A lower distance indicates higher similarity 
+        between the lines.
+
+    Notes
+    -----
+    - DTW is effective for lines that have similar shapes but are translated or have 
+      different lengths.
+    - The lines are assumed to be represented in the same coordinate space.
+
+    Examples
+    --------
+    >>> line1 = [(0, 0), (1, 1), (2, 2)]
+    >>> line2 = [(1, 1), (2, 2), (3, 3)]
+    >>> compare_lines_dtw(line1, line2)
+    1.4142135623730951
+    """
+    # Compute the DTW distance
+    distance, _ = fastdtw(line1, line2, dist=euclidean)
+    return distance
+
+
+def give_score(fdtw, proc):
+    """
+    Calculate similarity scores for lines based on DTW and Procrustes disparities.
+
+    This function computes similarity scores for two lines by normalizing the distances 
+    obtained from Dynamic Time Warping (DTW) and Procrustes analysis. The scores are 
+    scaled to a 0-100 range, where a higher score indicates higher similarity.
+
+    Parameters
+    ----------
+    fdtw : float
+        The DTW distance between the two lines.
+    proc : float
+        The Procrustes disparity between the two lines.
+
+    Returns
+    -------
+    score_fdtw : float
+        The similarity score based on the DTW distance. A score closer to 100 indicates
+        higher similarity.
+    score_proc : float
+        The similarity score based on the Procrustes disparity. A score closer to 100 
+        indicates higher similarity.
+
+    Notes
+    -----
+    - The function uses predefined scaling factors to normalize the DTW and Procrustes 
+      distances to a 0-100 range.
+    - The scores are computed using linear and square root transformations for DTW and 
+      Procrustes distances, respectively.
+
+    Examples
+    --------
+    >>> fdtw_distance = 50.0
+    >>> proc_disparity = 0.02
+    >>> give_score(fdtw_distance, proc_disparity)
+    (99.38271604938271, 98.51363580502282)
+    """
+    slope_fdtw = 81.125
+    slope_proc = 0.0088
+
+    score_fdtw = 100.0 - fdtw/slope_fdtw
+    score_proc = 100.0 - math.sqrt(proc)/slope_proc
+
+    return score_fdtw, score_proc
