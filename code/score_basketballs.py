@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 np.set_printoptions(threshold=np.inf)
 
-
 # a default video of "None" will be the Nash shot
 def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=True):
    # read the first frame
@@ -48,8 +47,6 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
        plt.show()
 
    return coordinates
-    
-
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
@@ -61,7 +58,12 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    
    # manually define the point of interest from the first image
    if initial_frame == True and point_of_interest == None:
-      point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
+      if video == 'nash_shot_clean':
+         point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
+      elif video == 'srikanth_make':
+          point_of_interest = (686, 801)
+
+
 
    # draw point of interest
    cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
@@ -70,7 +72,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Hue, Saturation, Value
 
    # create a mask to segment out the basketball colors
-   mask, masked_image = create_basketball_mask(hsv_image, frame) # masked image is it overlaid on the original image, mask is just the black and white image
+   mask, masked_image = create_basketball_mask(hsv_image, frame, video) # masked image is it overlaid on the original image, mask is just the black and white image
 
    # remove the small objects (contours)
    cleaned_mask = remove_small_contours(mask, 175) # a larger threshold removes more noise
@@ -197,29 +199,40 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
         
 # segments out the orange, red, and dark red colors of a typical basketball
-def create_basketball_mask(hsv_image, frame):
+def create_basketball_mask(hsv_image, frame, video=None):
     ### define the color bounds for... ###
 
-   # orange
-   lower_orange = np.array([5, 100, 100])
-   upper_orange = np.array([12, 255, 255])
+   if video == 'nash_shot_clean':
 
-   # red
-   lower_red = np.array([172, 100, 100])
-   upper_red = np.array([176, 255, 255])
+      # orange
+      lower_orange = np.array([5, 100, 100])
+      upper_orange = np.array([12, 255, 255])
 
-   # dark red
-   lower_dark_red = np.array([160,100,50])
-   upper_dark_red = np.array([180,255,100])
+      # red
+      lower_red = np.array([172, 100, 100])
+      upper_red = np.array([176, 255, 255])
 
-   # Create a mask for the orange and red colors
-   mask_orange = cv2.inRange(hsv_image, lower_orange, upper_orange)
-   mask_red = cv2.inRange(hsv_image, lower_red, upper_red)
-   mask_dark_red = cv2.inRange(hsv_image, lower_dark_red, upper_dark_red)
+      # dark red
+      lower_dark_red = np.array([160,100,50])
+      upper_dark_red = np.array([180,255,100])
 
-   # combine the masks
-   mask = cv2.bitwise_or(mask_orange, mask_red)
-   mask = cv2.bitwise_or(mask, mask_dark_red)
+      # Create a mask for the orange and red colors
+      mask_orange = cv2.inRange(hsv_image, lower_orange, upper_orange)
+      mask_red = cv2.inRange(hsv_image, lower_red, upper_red)
+      mask_dark_red = cv2.inRange(hsv_image, lower_dark_red, upper_dark_red)
+
+      # combine the masks
+      mask = cv2.bitwise_or(mask_orange, mask_red)
+      mask = cv2.bitwise_or(mask, mask_dark_red)
+
+   elif video == 'srikanth_make':
+       
+      lower_orange = np.array([0, 120, 80])
+      upper_orange = np.array([2, 235, 255])
+
+      mask = cv2.inRange(hsv_image, lower_orange, upper_orange)
+
+       
 
    # apply the mask
    masked_image = cv2.bitwise_and(frame, frame, mask=mask)
