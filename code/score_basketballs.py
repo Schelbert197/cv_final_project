@@ -50,7 +50,7 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
-def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10, video=None):
+def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=3, distance_weight=10, video=None):
    print(video)
    # record the previous point of interest in case no new points are identified
    if point_of_interest != None:
@@ -61,6 +61,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
       if video == 'nash_shot_clean':
          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
       elif video == 'srikanth_make':
+          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
           point_of_interest = (686, 801)
 
 
