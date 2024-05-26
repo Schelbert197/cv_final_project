@@ -51,9 +51,6 @@ def track_basketball(cap, video, save_csv=True, save_plot=True, show_plot=True):
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10, video=None):
-   print(video)
-
-
 
    # record the previous point of interest in case no new points are identified
    if point_of_interest != None:
@@ -77,8 +74,11 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # create a mask to segment out the basketball colors
    mask, masked_image = create_basketball_mask(hsv_image, frame, video) # masked image is it overlaid on the original image, mask is just the black and white image
 
+   
+
+
    # remove the small objects (contours)
-   cleaned_mask = remove_small_contours(mask, 175) # a larger threshold removes more noise
+   cleaned_mask = remove_small_contours(mask, 18) # a larger threshold removes more noise
 
    # blur the image
    mask_blurred = cv2.blur(cleaned_mask, (3, 3))
