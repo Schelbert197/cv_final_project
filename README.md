@@ -1,5 +1,6 @@
 # Computer Vision Final Project
 Authors: Henry Buron, Srikanth Schelbert
+
 Goal: Motion Tracking of Basketball Shots
 
 ## Dependencies

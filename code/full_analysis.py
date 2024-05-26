@@ -1,4 +1,4 @@
-from track_motion import track_shot, find_release, compare_lines_dtw, compare_lines_procrustes
+from track_motion import track_shot, find_release, compare_lines_dtw, compare_lines_procrustes, give_score
 from score_basketballs import track_basketball
 import cv2
 import math
@@ -60,8 +60,10 @@ def score_shot(current_video, default_video='videos/nash_shot_clean.mp4'):
     x3, y3 = zip(*default_ball_coords)
     axs.plot(x3, y3, marker='o', color="b", markersize=2, label="Ball")
 
+    # Get release angle and plot post release ball trajectory
     far_points, release_angle = find_release(
         40, right_wrist_trajectory, default_ball_coords)
+    print(f"Deg: {release_angle:.2f}")
 
     # Plot ball trajectory post release
     x4, y4 = zip(*far_points)
@@ -71,19 +73,21 @@ def score_shot(current_video, default_video='videos/nash_shot_clean.mp4'):
     axs.plot(x4[:2], y4[:2], marker='o', color="yellow",
              markersize=1, label="First released points")
 
-    print(f"Deg: {release_angle:.2f}")
-
     axs.legend()
 
     plt.savefig('plots/full_trajectory_plot.png')  # Save the plot as an image
     plt.close(fig)  # Close the plot to prevent displaying it
 
-    disparity_hands = compare_lines_procrustes(
-        left_wrist_trajectory, right_wrist_trajectory)
-    print(f"The Procrustes disparity between the hands is: {disparity_hands}")
-    distance_hands = compare_lines_dtw(
-        left_wrist_trajectory, right_wrist_trajectory)
-    print(f"The DTW distance between the hands is: {distance_hands}")
+    ############## Scoring ###############
+    # Note: Release angle printed above
+
+    fdtw_score = compare_lines_dtw(
+        right_wrist_trajectory, test_right_wrist_traj)
+    proc_score = compare_lines_procrustes(
+        right_wrist_trajectory, test_right_wrist_traj)
+    f_score, p_score = give_score(fdtw_score, proc_score)
+    print(f"The FastDTW score out of 100 is: {f_score}")
+    print(f"The Procrustes score out of 100 is: {p_score}")
 
 
 if __name__ == '__main__':
