@@ -32,4 +32,4 @@ print("Points in ARR2 farther than the threshold:", far_points)
 
 # display and saves the basketball trajectory
 coordinates = track_basketball(
-   cap, video='nash_shot', save_csv=True, save_plot=True, show_plot=True)
+   cap, video='nash_shot', save_csv=False, save_plot=False, show_plot=True)
