@@ -1,21 +1,18 @@
-### TODO: the next thing to do is to improve the size scoring. have it compare
-### the size of the contour to the size of the previous frame's contour. if the
-### size of the contour is too different, then it's probably not a basketball.
-### this will help when the ball goes in and out of frame
-
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
 np.set_printoptions(threshold=np.inf)
 
-def track_basketball(cap, plot_save_file=None, csv_save_file=None):
+
+# a default video of "None" will be the Nash shot
+def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=True):
    # read the first frame
    ret, frame = cap.read()
    frame_shape = frame.shape
 
    # find the basketball in the first frame
-   point_of_interest = find_basketball(frame, initial_frame=True)
+   point_of_interest = find_basketball(frame, initial_frame=True, video=video)
 
    coordinates = []
 
@@ -27,22 +24,28 @@ def track_basketball(cap, plot_save_file=None, csv_save_file=None):
          if not ret:
             break
    
-         point_of_interest = find_basketball(frame, point_of_interest=point_of_interest, distance_weight=44)
+         point_of_interest = find_basketball(frame, point_of_interest=point_of_interest, distance_weight=44, video=video)
          coordinates.append(point_of_interest)
    
    cap.release()
 
    coordinates = np.array(coordinates)
 
-   if csv_save_file != None:
-      np.save(csv_save_file + '.npy', coordinates)
-      np.savetxt(csv_save_file + '.csv', coordinates, delimiter=',')
+   # save the csv file
+   if save_csv:
+       np.savetxt('../data/' + video + '.csv', coordinates, delimiter=',')
 
+   # make the plot
    plt.plot(coordinates[:, 0], frame_shape[0] - coordinates[:, 1])
    plt.title('Basketball Trajectory')
-   if plot_save_file != None:
-      plt.savefig(plot_save_file + '.png')
-   plt.show()
+
+   # save png plot
+   if save_plot:
+       plt.savefig('../plots/' + video + '.png')
+
+   # show plot
+   if show_plot:
+       plt.show()
 
    return coordinates
     
@@ -50,8 +53,8 @@ def track_basketball(cap, plot_save_file=None, csv_save_file=None):
 
 # score the contours based on their likelihood of being a basketball,
 # and return the centroid of the most likely basketball
-def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10):
-      
+def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=1, distance_weight=10, video=None):
+   print(video)
    # record the previous point of interest in case no new points are identified
    if point_of_interest != None:
       previous_point_of_interest = point_of_interest
@@ -102,7 +105,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
          square_scores.append(squareness) # the higher the score, the more likely it is a basketball. From 0 to 1
 
-   ### SIZE SCORE ### ### TODO: could also compare it with the size of the previous frame ###
+   ### SIZE SCORE ###
 
    for c in contours:
          size = cv2.contourArea(c)
