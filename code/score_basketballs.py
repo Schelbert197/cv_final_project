@@ -60,13 +60,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    if initial_frame == True and point_of_interest == None:
       if video == 'nash_shot_clean':
          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
-      elif video == 'srikanth_make':
-         point_of_interest = (686, 801)
-      elif video == 'srikanth_miss':
-         point_of_interest = (686, 801)
-      elif video == 'henry_make':
-         point_of_interest = (686, 801)
-      elif video == 'henry_miss':
+      else:
          point_of_interest = (686, 801)
 
    # draw point of interest
@@ -165,6 +159,9 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
           distance = 0
 
       distance_check.append(distance)
+
+   if video == 'henry_make':
+      size_weight = 15
 
    # apply weights, signifying the importance of each score
    square_scores = [s * square_weight for s in square_scores]
