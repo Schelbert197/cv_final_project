@@ -58,7 +58,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    
    # manually define the point of interest from the first image
    if initial_frame == True and point_of_interest == None:
-      if video == 'nash_shot_clean':
+      if video == 'nash_shot':
          point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
       else:
          point_of_interest = (686, 801)
@@ -70,17 +70,14 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Hue, Saturation, Value
 
    # create a mask to segment out the basketball colors
-   mask, masked_image = create_basketball_mask(hsv_image, frame, video) # masked image is it overlaid on the original image, mask is just the black and white image
+   mask, _ = create_basketball_mask(hsv_image, frame, video) # masked image is it overlaid on the original image, mask is just the black and white image
 
    thresh = 175
-   if video != 'nash_shot_clean':
+   if video != 'nash_shot':
       thresh = 18
 
    # remove the small objects (contours)
    cleaned_mask = remove_small_contours(mask, thresh) # a larger threshold removes more noise
-
-   # blur the image
-   mask_blurred = cv2.blur(cleaned_mask, (3, 3))
 
    # find contours in the contour masked image
    contours, _ = cv2.findContours(cleaned_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -150,7 +147,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
       # basically disregarding the contour if it's too far away (unless all of them are > dist_check pixels away)
       dist_check = 150
-      if video != 'nash_shot_clean':
+      if video != 'nash_shot':
          dist_check = 650
 
       if distance > dist_check:
@@ -198,20 +195,12 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
 
    return point_of_interest
-
-
-
-
-
-
-
-
         
 # segments out the orange, red, and dark red colors of a typical basketball
 def create_basketball_mask(hsv_image, frame, video):
     ### define the color bounds for... ###
 
-   if video == 'nash_shot_clean':
+   if video == 'nash_shot':
 
       # orange
       lower_orange = np.array([5, 100, 100])
