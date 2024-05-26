@@ -59,7 +59,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
    # manually define the point of interest from the first image
    if initial_frame == True and point_of_interest == None:
       point_of_interest = (frame.shape[1] / 4, frame.shape[0] / 2)
-      point_of_interest = (620, 750)
+      point_of_interest = (686, 801)
 
    # draw point of interest
    cv2.circle(frame, (int(point_of_interest[0]), int(point_of_interest[1])), 5, (0, 0, 255), -1)
@@ -199,8 +199,8 @@ def create_basketball_mask(hsv_image, frame):
     ### define the color bounds for... ###
 
    # define the range of the color orange in hsv
-   lower_orange = np.array([0, 120, 100])
-   upper_orange = np.array([2, 255, 255])
+   lower_orange = np.array([0, 120, 80]) # 0, 120, 80
+   upper_orange = np.array([2, 235, 255]) # 2/3, 235, 255 works well
 
    # define dark brown
    # lower_dark_brown = np.array([0, 0, 0])
