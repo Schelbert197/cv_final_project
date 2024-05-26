@@ -3,7 +3,7 @@ from score_basketballs import track_basketball
 
 
 # # load video
-cap = cv2.VideoCapture('../videos/our_shots/swish_1.mp4') # also: nash_cut.mp4
+cap = cv2.VideoCapture('../videos/our_shots/short_1.mp4') # also: nash_cut.mp4
 
 # # display and saves the basketball trajectory
 # coordinates = track_basketball(cap, plot_save_file='../plots/basketball_trajectory_3', csv_save_file='../data/basketball_trajectory_3')
@@ -34,4 +34,4 @@ print("Indices of points farther than the threshold:", indices)
 print("Points in ARR2 farther than the threshold:", far_points)
 # display and saves the basketball trajectory
 coordinates = track_basketball(
-    cap, plot_save_file='../plots/srikanth_make', csv_save_file='../data/srikanth_make')
+    cap, plot_save_file='../plots/henry_miss', csv_save_file='../data/henry_miss')
