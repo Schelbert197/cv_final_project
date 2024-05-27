@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-
+# might want to make it so this can take in a list of lists of coordinates: [[(x1, y1), (x2, y2), ...], [(x1, y1), (x2, y2), ...], ...]
 def superimpose_trajectory(image, coordinates, bgr_color=(0, 255, 0)):
       """
       Superimpose the basketball trajectory on the image.
