@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 
 np.set_printoptions(threshold=np.inf)
 
-# a default video of "None" will be the Nash shot
-
-def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=True):
+# a default video of "None" will be the Nash shot video
+def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
     """
     Track the basketball in a video and save the coordinates, trajectory plot, and optionally display the plot.
 
@@ -20,15 +19,32 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
     Returns:
     np.ndarray: Array of coordinates of the tracked basketball.
     """
+    
+	# load the video
+    video_path = '../videos/nash_shot.mp4'
+    
+    if video == 'srikanth_make':
+        video_path = '../videos/srikanth_make.mp4'
+    elif video == 'srikanth_miss':
+        video_path = '../videos/srikanth_miss.mp4'
+    elif video == 'henry_make':
+        video_path = '../videos/henry_make.mp4'
+    elif video == 'henry_miss':
+        video_path = '../videos/henry_miss.mp4'
+        
+    cap = cv2.VideoCapture(video_path)
 
     # read the first frame
     ret, frame = cap.read()
     frame_shape = frame.shape
 
     # find the basketball in the first frame
-    point_of_interest = find_basketball(frame, initial_frame=True, video=video)
+    point_of_interest, contours, max_score_index, scores = find_basketball(frame, initial_frame=True, video=video)
 
     coordinates = []
+    contours_list = []
+    max_score_indices = []
+    scores_list = []
 
     # find basketball for the whole video
     while cap.isOpened():
@@ -38,14 +54,17 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
         if not ret:
             break
 
-        point_of_interest = find_basketball(
+        point_of_interest, contours, max_score_index, scores = find_basketball(
             frame, point_of_interest=point_of_interest, distance_weight=44, video=video)
+        
         coordinates.append(point_of_interest)
+        contours_list.append(contours)
+        max_score_indices.append(max_score_index)
+        scores_list.append(scores)
 
     cap.release()
-
     coordinates = np.array(coordinates)
-
+    
     # save the csv file
     if save_csv:
         np.savetxt('../data/' + video + '.csv', coordinates, delimiter=',')
@@ -62,7 +81,7 @@ def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=T
     if show_plot:
         plt.show()
 
-    return coordinates
+    return coordinates, contours_list, max_score_indices, scores_list
 
 
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10, video=None):
@@ -236,7 +255,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
     cv2.imshow("Detected Basketball", frame)
     cv2.waitKey(0)
 
-    return point_of_interest
+    return point_of_interest, contours, max_score_index, scores
 
 def create_basketball_mask(hsv_image, frame, video):
     """
