@@ -6,8 +6,21 @@ np.set_printoptions(threshold=np.inf)
 
 # a default video of "None" will be the Nash shot
 
+def track_basketball(cap, video=None, save_csv=True, save_plot=True, show_plot=True):
+    """
+    Track the basketball in a video and save the coordinates, trajectory plot, and optionally display the plot.
 
-def track_basketball(cap, video, save_csv=True, save_plot=True, show_plot=True):
+    Parameters:
+    cap (cv2.VideoCapture): Video capture object.
+    video (str): Name of the video file.
+    save_csv (bool): Flag to save the coordinates to a CSV file. Default is True.
+    save_plot (bool): Flag to save the trajectory plot as a PNG file. Default is True.
+    show_plot (bool): Flag to display the trajectory plot. Default is True.
+
+    Returns:
+    np.ndarray: Array of coordinates of the tracked basketball.
+    """
+
     # read the first frame
     ret, frame = cap.read()
     frame_shape = frame.shape
@@ -51,11 +64,23 @@ def track_basketball(cap, video, save_csv=True, save_plot=True, show_plot=True):
 
     return coordinates
 
-# score the contours based on their likelihood of being a basketball,
-# and return the centroid of the most likely basketball
-
 
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10, video=None):
+    """
+    Find the basketball in a given frame based on its color, size, and location.
+
+    Parameters:
+    frame (np.ndarray): The current video frame.
+    initial_frame (bool): Flag to indicate if this is the initial frame. Default is False.
+    point_of_interest (tuple): Previous point of interest coordinates. Default is None.
+    square_weight (int): Weight for squareness scoring. Default is 3.
+    size_weight (int): Weight for size scoring. Default is 10.
+    distance_weight (int): Weight for distance scoring. Default is 10.
+    video (str): Name of the video file.
+
+    Returns:
+    tuple: Coordinates of the identified basketball.
+    """
 
     # record the previous point of interest in case no new points are identified
     if point_of_interest != None:
@@ -213,10 +238,19 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
     return point_of_interest
 
-# segments out the orange, red, and dark red colors of a typical basketball
-
-
 def create_basketball_mask(hsv_image, frame, video):
+    """
+    Create a mask to segment out the basketball colors from an HSV image.
+
+    Parameters:
+    hsv_image (np.ndarray): The HSV converted image.
+    frame (np.ndarray): The original video frame.
+    video (str): Name of the video file.
+
+    Returns:
+    tuple: The mask and the masked image.
+    """
+    
     ### define the color bounds for... ###
 
     if video == 'nash_shot':
@@ -271,8 +305,18 @@ def create_basketball_mask(hsv_image, frame, video):
 
     return mask, masked_image
 
-
 def remove_small_contours(mask, threshold):
+    """
+    Remove small contours from a mask.
+    
+    Parameters:
+    mask (np.ndarray): The mask image.
+    threshold (int): The threshold to remove small contours.
+    
+    Returns:
+    np.ndarray: The cleaned mask image.
+    """
+    
     ### remove the small contours ###
     contours, _ = cv2.findContours(
         mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -286,6 +330,18 @@ def remove_small_contours(mask, threshold):
 
     return cleaned_mask
 
-
 def distance(x1, y1, x2, y2):
+    """
+    Calculate the Euclidean distance between two points.
+    
+    Parameters:
+    x1 (int): The x-coordinate of the first point.
+    y1 (int): The y-coordinate of the first point.
+    x2 (int): The x-coordinate of the second point.
+    y2 (int): The y-coordinate of the second point.
+    
+    Returns:
+    float: The Euclidean distance between the two points.
+    """
+    
     return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
