@@ -17,7 +17,7 @@ mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
 
 
-def track_shot(video='videos/nash_shot_clean.mp4'):
+def track_shot(video='videos/vids/nash_shot.mp4'):
     """
     Track the trajectory of specific body landmarks (right elbow, left wrist, and right wrist) 
     from a video using MediaPipe Holistic model.
@@ -25,7 +25,7 @@ def track_shot(video='videos/nash_shot_clean.mp4'):
     Parameters:
     -----------
     video : str, optional
-        The path to the video file to be processed. Default is 'videos/nash_shot_clean.mp4'.
+        The path to the video file to be processed. Default is 'videos/vids/nash_shot.mp4'.
 
     Returns:
     --------
@@ -301,7 +301,7 @@ def compare_lines_dtw(line1, line2):
     return distance
 
 
-def give_score(fdtw, proc):
+def give_score(fdtw, proc, skill_factor):
     """
     Calculate similarity scores for lines based on DTW and Procrustes disparities.
 
@@ -315,6 +315,8 @@ def give_score(fdtw, proc):
         The DTW distance between the two lines.
     proc : float
         The Procrustes disparity between the two lines.
+    skill_factor : float
+        The multiplier to get a reasonable score based on skill [0.0-1.0].
 
     Returns
     -------
@@ -336,11 +338,12 @@ def give_score(fdtw, proc):
     --------
     >>> fdtw_distance = 50.0
     >>> proc_disparity = 0.02
+    >>> skill_factor = 1.0
     >>> give_score(fdtw_distance, proc_disparity)
     (99.38271604938271, 98.51363580502282)
     """
-    slope_fdtw = 81.125
-    slope_proc = 0.0088
+    slope_fdtw = 81.125/skill_factor
+    slope_proc = 0.0088/skill_factor
 
     score_fdtw = 100.0 - fdtw/slope_fdtw
     score_proc = 100.0 - math.sqrt(proc)/slope_proc
