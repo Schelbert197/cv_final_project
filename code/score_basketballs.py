@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 np.set_printoptions(threshold=np.inf)
 
 # a default video of "None" will be the Nash shot video
+
+
 def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
     """
     Track the basketball in a video and save the coordinates, trajectory plot, and optionally display the plot.
@@ -19,19 +21,19 @@ def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
     Returns:
     np.ndarray: Array of coordinates of the tracked basketball.
     """
-    
-	# load the video
-    video_path = '../videos/nash_shot.mp4'
-    
+
+    # load the video
+    video_path = 'videos/vids/nash_shot.mp4'
+
     if video == 'srikanth_make':
-        video_path = '../videos/srikanth_make.mp4'
+        video_path = 'videos/vids/srikanth_make.mp4'
     elif video == 'srikanth_miss':
-        video_path = '../videos/srikanth_miss.mp4'
+        video_path = 'videos/vids/srikanth_miss.mp4'
     elif video == 'henry_make':
-        video_path = '../videos/henry_make.mp4'
+        video_path = 'videos/vids/henry_make.mp4'
     elif video == 'henry_miss':
-        video_path = '../videos/henry_miss.mp4'
-        
+        video_path = 'videos/vids/henry_miss.mp4'
+
     cap = cv2.VideoCapture(video_path)
 
     # read the first frame
@@ -39,7 +41,8 @@ def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
     frame_shape = frame.shape
 
     # find the basketball in the first frame
-    point_of_interest, contours, max_score_index, scores = find_basketball(frame, initial_frame=True, video=video)
+    point_of_interest, contours, max_score_index, scores = find_basketball(
+        frame, initial_frame=True, video=video)
 
     coordinates = []
     contours_list = []
@@ -56,7 +59,7 @@ def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
 
         point_of_interest, contours, max_score_index, scores = find_basketball(
             frame, point_of_interest=point_of_interest, distance_weight=44, video=video)
-        
+
         coordinates.append(point_of_interest)
         contours_list.append(contours)
         max_score_indices.append(max_score_index)
@@ -64,10 +67,10 @@ def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
 
     cap.release()
     coordinates = np.array(coordinates)
-    
+
     # save the csv file
     if save_csv:
-        np.savetxt('../data/' + video + '.csv', coordinates, delimiter=',')
+        np.savetxt('data/' + video + '.csv', coordinates, delimiter=',')
 
     # make the plot
     plt.plot(coordinates[:, 0], frame_shape[0] - coordinates[:, 1])
@@ -75,13 +78,13 @@ def track_basketball(video=None, save_csv=True, save_plot=True, show_plot=True):
 
     # save png plot
     if save_plot:
-        plt.savefig('../plots/' + video + '.png')
+        plt.savefig('plots/' + video + '.png')
 
     # show plot
     if show_plot:
         plt.show()
 
-    return coordinates, contours_list, max_score_indices, scores_list
+    return coordinates  # , contours_list, max_score_indices, scores_list
 
 
 def find_basketball(frame, initial_frame=False, point_of_interest=None, square_weight=3, size_weight=10, distance_weight=10, video=None):
@@ -257,6 +260,7 @@ def find_basketball(frame, initial_frame=False, point_of_interest=None, square_w
 
     return point_of_interest, contours, max_score_index, scores
 
+
 def create_basketball_mask(hsv_image, frame, video):
     """
     Create a mask to segment out the basketball colors from an HSV image.
@@ -269,7 +273,7 @@ def create_basketball_mask(hsv_image, frame, video):
     Returns:
     tuple: The mask and the masked image.
     """
-    
+
     ### define the color bounds for... ###
 
     if video == 'nash_shot':
@@ -324,18 +328,19 @@ def create_basketball_mask(hsv_image, frame, video):
 
     return mask, masked_image
 
+
 def remove_small_contours(mask, threshold):
     """
     Remove small contours from a mask.
-    
+
     Parameters:
     mask (np.ndarray): The mask image.
     threshold (int): The threshold to remove small contours.
-    
+
     Returns:
     np.ndarray: The cleaned mask image.
     """
-    
+
     ### remove the small contours ###
     contours, _ = cv2.findContours(
         mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -349,18 +354,19 @@ def remove_small_contours(mask, threshold):
 
     return cleaned_mask
 
+
 def distance(x1, y1, x2, y2):
     """
     Calculate the Euclidean distance between two points.
-    
+
     Parameters:
     x1 (int): The x-coordinate of the first point.
     y1 (int): The y-coordinate of the first point.
     x2 (int): The x-coordinate of the second point.
     y2 (int): The y-coordinate of the second point.
-    
+
     Returns:
     float: The Euclidean distance between the two points.
     """
-    
+
     return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)

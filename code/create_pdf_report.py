@@ -3,7 +3,7 @@ from reportlab.pdfgen import canvas
 import cv2
 
 
-def create_pdf_report(filename=None, score=None, shooting_image=None, plots_image=None, launch_angle=None):
+def write_pdf_report(filename=None, score=None, shooting_image=None, plots_image=None, launch_angle=None):
 
     IMG_SCALING_FACTOR = 4.3
 
@@ -80,8 +80,8 @@ def create_pdf_report(filename=None, score=None, shooting_image=None, plots_imag
     c.save()
 
 
-create_pdf_report("../reports/basketball_trajectory_report_1.pdf",
-                  score=92,
-                  launch_angle=41,
-                  shooting_image="../images/nash_shooting.png",
-                  plots_image="../images/trajectory_plot.png",)
+# create_pdf_report("../reports/basketball_trajectory_report_1.pdf",
+#                   score=92,
+#                   launch_angle=41,
+#                   shooting_image="../images/nash_shooting.png",
+#                   plots_image="../images/trajectory_plot.png",)

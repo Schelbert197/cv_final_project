@@ -12,6 +12,13 @@ The following packages are required to use the code for this project
 - Matplotlib
 - Numpy
 
+## How to Use
+1. Extract the vids.zip file in the `videos` folder so that it generates a vids subdirectory within `videos`. 
+2. Run the command `python3 code/full_analysis.py`
+3. Enter the video you would like to evaluate
+4. Enter the skill level.
+5. Observe the output pdf in the `reports` directory associated with your choice of video.
+
 ## Overview
 This project aims to score a user's free-throw shot by running a copmarison against a ground truth example. In this case, that example is a free-throw from NBA Player Steve Nash. The project uses Google Mediapipe to track the motion of the players, and uses computer vision techniques like masking, object detection, and motion tracking to track the trajectory of the ball throughout the video.
 

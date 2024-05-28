@@ -1,5 +1,6 @@
 from track_motion import track_shot, find_release, compare_lines_dtw, compare_lines_procrustes, give_score
 from score_basketballs import track_basketball
+from create_pdf_report import write_pdf_report
 import cv2
 import numpy as np
 import matplotlib
@@ -11,7 +12,6 @@ current_video = 'videos/nash_shot_clean.mp4'
 
 
 def choose_video():
-    """Prompts the user to select a video from the list given."""
     """Prompts the user to select a video from the list given."""
     # Define a dictionary to map selections to video titles
     video_dict = {
@@ -67,10 +67,7 @@ def score_shot(current_video, default_video='nash_shot', skill='i'):
         'videos/vids/' + default_video + '.mp4')
 
     # Get ball information for default video (from Steve Nash)
-    cap1 = cv2.VideoCapture(
-        'videos/vids/' + default_video + '.mp4')  # also: nash_cut.mp4
     default_ball_coords = track_basketball(
-        cap1,
         video=default_video,
         save_csv=False,
         save_plot=False,
@@ -81,10 +78,8 @@ def score_shot(current_video, default_video='nash_shot', skill='i'):
         'videos/vids/' + current_video + '.mp4')
 
     # Get ball information for test video (from our shots)
-    cap2 = cv2.VideoCapture(
-        'videos/vids/' + current_video + '.mp4')  # also: nash_cut.mp4
+
     test_ball_coords = track_basketball(
-        cap2,
         video=current_video,
         save_csv=False,
         save_plot=False,
@@ -95,7 +90,7 @@ def score_shot(current_video, default_video='nash_shot', skill='i'):
     ################### Plotting:##################
     # Plotting
     print("starting plots")
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
 
     # Plot left hand trajectory
     x, y = zip(*left_wrist_trajectory)
@@ -233,6 +228,12 @@ def score_shot(current_video, default_video='nash_shot', skill='i'):
                   p_score_b,
                   overall_b,
                   final_score]
+    write_pdf_report('reports/basketball_trajectory_report_' + current_video + '.pdf',
+                     score=int(final_score),
+                     launch_angle=int(test_release_angle),
+                     shooting_image='images/' + current_video + '_traj.png',
+                     plots_image=f'plots/final_output_{current_video}.png'
+                     )
     return all_scores
 
 
