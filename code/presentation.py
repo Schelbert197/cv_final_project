@@ -25,10 +25,20 @@ def superimpose_trajectory(image, coordinates, bgr_color=(0, 255, 0)):
       # draw the trajectory on the image
       for i in range(1, len(coordinates)):
          cv2.line(image_with_trajectory, (int(coordinates[i - 1][0]), int(coordinates[i - 1][1])),
-                  (int(coordinates[i][0]), int(coordinates[i][1])), bgr_color, 2)
+                  (int(coordinates[i][0]), int(coordinates[i][1])), bgr_color, 3)
 
       # show the image
       cv2.imshow('Basketball Trajectory Imposed', image_with_trajectory)
       cv2.waitKey(0)
    
       return image_with_trajectory
+
+# load coordinates from csv file
+# coordinates = np.loadtxt('../data/srikanth_make.csv', delimiter=',')
+# coordinates = coordinates.reshape(-1, 2)
+
+# load image
+# image = cv2.imread('../images/srikanth_shot_make.png')
+
+# superimpose the trajectory on the image
+# image_with_trajectory = superimpose_trajectory(image, coordinates)
