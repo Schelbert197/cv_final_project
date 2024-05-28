@@ -4,8 +4,6 @@ import numpy as np
 from scipy.spatial import distance
 from presentation import superimpose_trajectory
 
-# load video
-cap = cv2.VideoCapture('../videos/nash_shot.mp4')
 
 # Example ARR1 and ARR2
 ARR1 = np.array([(1, 2), (3, 4), (5, 6)])
@@ -30,8 +28,8 @@ print("Indices of points farther than the threshold:", indices)
 print("Points in ARR2 farther than the threshold:", far_points)
 
 # display and saves the basketball trajectory
-coordinates = track_basketball(
-   cap, video='nash_shot', save_csv=False, save_plot=False, show_plot=True)
+coordinates, contours_list, max_score_indices, scores_list = track_basketball(
+   video='srikanth_make', save_csv=False, save_plot=False, show_plot=True)
 
 # superimpose the basketball trajectory on the image
 image = cv2.imread('../images/nash_shooting.png')
